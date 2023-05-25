@@ -37,7 +37,7 @@ body {
     position: relative;
     flex: 1 1 10%;
     height: 100%;
-    transition: all 100ms ease-out;
+    transition: all 0ms ease-out;
     text-align: end;
     overflow: hidden;
 }
@@ -218,7 +218,7 @@ table tbody tr td:last-child {
     color: #ff0;
     opacity: 1;
     transform: rotateX(0deg);
-    animation: blinker 100ms alternate ease-in-out;
+    animation: blinker 0ms alternate ease-in-out;
 }
 
 .bar {

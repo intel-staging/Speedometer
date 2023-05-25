@@ -123,11 +123,16 @@ function refreshTable(name, need_measure) {
     const tableBody = document.getElementById("table-body");
     tableBody.innerHTML = "";
     tableBody.innerHTML = generateTableBody(name);
-    if (need_measure) {
-        measure();
-    }
 }
 
+function setup() {
+    //Switch 5 images one by one
+    setTimeout(switchImgBox, 0);
+    setTimeout(switchImgBox, 0);
+    setTimeout(switchImgBox, 0);
+    setTimeout(switchImgBox, 0);
+    setTimeout(switchImgBox, 0);
+}
 const $boxes = document.querySelectorAll(".box");
 [].slice.call($boxes).forEach(function ($el, index) {
     let i = index + 1;
@@ -142,7 +147,7 @@ box3Element.classList.add("active");
 
 // set corresponding table data
 refreshTable("Ice cream", false);
-setTimeout(switchImgBox, 500);
+setTimeout(setup, 500);
 
 let $activeBox = document.querySelector(".active");
 $boxes.forEach((box) => {
@@ -157,6 +162,11 @@ $boxes.forEach((box) => {
         $activeBox = box;
         const boxIndex = +box.dataset.box;
         refreshTable([...dataMap.keys()][boxIndex - 1], true);
+        const height = document.body.getBoundingClientRect().height;
+        const frame_measure = performance.measure("animation", "start");
+        frame_count++;
+        overall_time += frame_measure.duration;
+        document.body._unusedHeightValue = height;
     });
 });
 
@@ -173,57 +183,9 @@ function switchImgBox() {
     end_flag = false;
     $nextImgBoxEle.click();
     imgIndex++;
-    click_num--;
+    if (--click_num == 0) {
+        console.log("frame count: " + frame_count + ", average frame time:" + overall_time / frame_count);
+        alert("average frame time: " + overall_time / frame_count);
+    }
     return true;
-}
-
-///////////////////////////////////////////
-//                                       //
-//  measurement with RAF & afterFrame()  //
-//                                       //
-///////////////////////////////////////////
-function BeginFrame() {
-    window.requestAnimationFrame(() => {
-        if (!first_frame_after_click) {
-            performance.mark("start");
-        }
-    });
-}
-
-function FinishFrame() {
-    window.afterFrame(() => {
-        if (first_frame_after_click)
-            first_frame_after_click = false;
-        const frame_measure = performance.measure("animation", "start");
-        frame_count++;
-        overall_time += frame_measure.duration;
-
-        if (!end_flag) {
-            HandleFrameProcess();
-            return;
-        }
-
-        if (!switchImgBox()) {
-            console.log("frame count: " + frame_count + ", average frame time:" + overall_time / frame_count);
-            alert("average frame time: " + overall_time / frame_count);
-        }
-    });
-}
-
-function HandleFrameProcess() {
-    BeginFrame();
-    FinishFrame();
-}
-
-function measure() {
-    const end_element = document.getElementById("monitored_span");
-    end_element.addEventListener(
-        "animationend",
-        () => {
-            end_flag = true;
-        },
-        false
-    );
-
-    HandleFrameProcess();
 }
