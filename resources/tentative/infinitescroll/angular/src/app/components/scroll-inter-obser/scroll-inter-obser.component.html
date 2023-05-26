@@ -1,0 +1,127 @@
+<div>
+     <div>
+
+       <button id="scrollBtn" type='button'  (click)="startWorkload()">
+         <i>START</i>
+       </button>
+     </div>
+     <div class="messages">
+       <ul style ="list-style: none;" id="msgslist">
+         <div id="messagesList" (domChange)="onDomChange($event)" class="messages__list">
+           <!-- *ngFor repeating directive for messages property -->
+           <div
+             *ngFor="let message of messages; let i = index"
+             class="messages__item"
+             [ngClass]="{ 'messages__item--you': message.fromUser1 }"
+           >
+             <!-- Directive binding to message.fromUser1 -->
+             <li
+               id="lastListItem"
+               *ngIf="i + 1 === messages.length"
+               #theLastListItem
+             >
+               <div class="messages__time" >
+               <span class="view-conversation__time">
+                 <!-- Data binding to message.sent with date pipe -->
+                 {{ i }} :: {{ message.sent | date: "shortTime" }}
+               </span>
+               </div>
+               <div
+                 class="messages__message-animation"
+                 [ngStyle]="{ 'border-color': '#' + message.user.color }"
+               >
+                 <div class="emo_navbar">
+                   <button>👍</button>
+                   <button>❤️</button>
+                   <button>😀</button>
+                   <button>😄</button>
+                   <button>🙁</button>
+                   <button>😡</button>
+                 </div>
+                 <div class="messages__message">
+                    
+                   <div *ngIf="message.fromUser1" class="messages__message_person1"></div>
+                   <div *ngIf="!message.fromUser1" class="messages__message_person2"></div>
+                   <strong class="messages__name">
+                     <!-- Data binding to message.user.name -->
+                     {{ message.user.name }} </strong
+                   ><br />
+                   <!-- Data binding to message.text + message.text + message.text + message.text -->
+                   <p
+                     [ngClass]="
+                       message.fromUser1 ? 'messages_p--you' : 'messages_p'
+                     "
+                   >
+                     {{
+                       message.text + message.text + message.text + message.text
+                     }}
+                   </p>
+                 </div>
+                 <hr/>
+                 <div class="action_bar1">
+                   <div class="action_bar1_mail"></div>
+                   <div class="action_bar1_bookmark"></div>
+                   <div class="action_bar1_arrow"></div>
+                   <div class="action_bar1_calendar"></div>
+                   <div class="action_bar1_translate"></div>
+                 </div>
+               </div>
+             </li>
+             <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+             <li  *ngIf="i + 1 !== messages.length">
+               <!--"i &lt; messages.length -1"-->
+               <div class="messages__time" >
+                 <span class="view-conversation__time">
+                   <!-- Data binding to message.sent with date pipe -->
+                   {{ i }} :: {{ message.sent | date: "shortTime" }}
+                 </span>
+                 </div>
+   
+               <div
+                 class="messages__message-animation"
+                 [ngStyle]="{ 'border-color': '#' + message.user.color }"
+               >
+                 <!-- Directive binding to message.user.colour -->
+                 <div class="emo_navbar">
+                   <button>👍</button>
+                   <button>❤️</button>
+                   <button>😀</button>
+                   <button>😄</button>
+                   <button>🙁</button>
+                   <button>😡</button>
+                 </div>
+                 <div class="messages__message">
+                    <div *ngIf="message.fromUser1" class="messages__message_person1"></div>
+                    <div *ngIf="!message.fromUser1" class="messages__message_person2"></div>
+                    <strong class="messages__name">
+                      <!-- Data binding to message.user.name -->
+                      {{ message.user.name }} </strong
+                    ><br />
+   
+                   <!-- Data binding to message.text + message.text + message.text + message.text -->
+                   <p
+                     [ngClass]="
+                       message.fromUser1 ? 'messages_p--you' : 'messages_p'
+                     "
+                   >
+                     {{
+                       message.text + message.text + message.text + message.text
+                     }}
+                   </p>
+                 </div>
+                 <hr/>
+                 <div class="action_bar1">
+                   <div class="action_bar1_mail"></div>
+                   <div class="action_bar1_bookmark"></div>
+                   <div class="action_bar1_arrow"></div>
+                   <div class="action_bar1_calendar"></div>
+                   <div class="action_bar1_translate"></div>
+                 </div>
+               </div>
+             </li>
+           </div>
+         </div>
+       </ul>
+     </div>
+   </div>
+  
