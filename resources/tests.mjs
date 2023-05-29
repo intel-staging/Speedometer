@@ -398,6 +398,30 @@ Suites.push({
 });
 
 Suites.push({
+    name: "Rich-CSS",
+    url: "tentative/rich-css/index.html",
+    async prepare(page) {
+        await page.waitForElement("#monitored_span");
+    },
+    tests: [
+        new BenchmarkTestStep("SwitchImage", (page) => {
+            let imgIndex = 3;
+            for (let i = 0; i < 10; i++) {
+                let ele = page.querySelector(`.box-${imgIndex + 1}`);
+                if (!ele) {
+                    imgIndex = 0;
+                    ele = page.querySelector(`.box-${imgIndex + 1}`);
+                }
+                ele.click();
+                imgIndex++;
+
+                page.layout();
+            }
+        }),
+    ],
+});
+
+Suites.push({
     name: "Editor-CodeMirror",
     url: "tentative/editors/dist/codemirror.html",
     async prepare(page) {},

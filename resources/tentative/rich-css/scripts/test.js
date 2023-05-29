@@ -1,10 +1,3 @@
-let imgIndex = 3;
-let click_num = 5;
-let frame_count = 0;
-let overall_time = 0;
-let end_flag = false;
-let first_frame_after_click = false;
-
 const columNum = 6;
 // you can customize table rows by changing 'rowNum' value
 const rowNum = 100;
@@ -125,14 +118,6 @@ function refreshTable(name, need_measure) {
     tableBody.innerHTML = generateTableBody(name);
 }
 
-function setup() {
-    //Switch 5 images one by one
-    setTimeout(switchImgBox, 0);
-    setTimeout(switchImgBox, 0);
-    setTimeout(switchImgBox, 0);
-    setTimeout(switchImgBox, 0);
-    setTimeout(switchImgBox, 0);
-}
 const $boxes = document.querySelectorAll(".box");
 [].slice.call($boxes).forEach(function ($el, index) {
     let i = index + 1;
@@ -147,45 +132,17 @@ box3Element.classList.add("active");
 
 // set corresponding table data
 refreshTable("Ice cream", false);
-setTimeout(setup, 500);
 
 let $activeBox = document.querySelector(".active");
 $boxes.forEach((box) => {
     box.addEventListener("click", () => {
-        performance.mark("start");
-        first_frame_after_click = true;
-
         if ($activeBox) {
             $activeBox.classList.remove("active");
         }
         box.classList.add("active");
         $activeBox = box;
-        const boxIndex = +box.dataset.box;
+        const boxIndex = box.dataset.box;
         refreshTable([...dataMap.keys()][boxIndex - 1], true);
-        const height = document.body.getBoundingClientRect().height;
-        const frame_measure = performance.measure("animation", "start");
-        frame_count++;
-        overall_time += frame_measure.duration;
-        document.body._unusedHeightValue = height;
     });
 });
 
-function switchImgBox() {
-    if (click_num <= 0) {
-        return false;
-    }
-    const $nextImgBoxEle = document.querySelector(`.box-${imgIndex + 1}`);
-    if (!$nextImgBoxEle) {
-        imgIndex = 0;
-        switchImgBox();
-        return true;
-    }
-    end_flag = false;
-    $nextImgBoxEle.click();
-    imgIndex++;
-    if (--click_num == 0) {
-        console.log("frame count: " + frame_count + ", average frame time:" + overall_time / frame_count);
-        alert("average frame time: " + overall_time / frame_count);
-    }
-    return true;
-}
