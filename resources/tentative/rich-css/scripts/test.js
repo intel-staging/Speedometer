@@ -17,7 +17,7 @@ const dataMap = new Map([
             category: "Drink",
             price: "$25",
             popularity: "85%",
-            rating: 4,
+            rating: 5,
         },
     ],
     [
@@ -26,7 +26,7 @@ const dataMap = new Map([
             category: "Dessert",
             price: "$3",
             popularity: "90%",
-            rating: 5,
+            rating: 1,
         },
     ],
     [
@@ -35,7 +35,7 @@ const dataMap = new Map([
             category: "Food",
             price: "$5",
             popularity: "95%",
-            rating: 5,
+            rating: 2,
         },
     ],
     [
@@ -44,7 +44,7 @@ const dataMap = new Map([
             category: "Dessert",
             price: "$2",
             popularity: "98%",
-            rating: 5,
+            rating: 3,
         },
     ],
 ]);

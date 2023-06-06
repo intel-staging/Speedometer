@@ -405,18 +405,14 @@ Suites.push({
     },
     tests: [
         new BenchmarkTestStep("SwitchImage", (page) => {
-            let imgIndex = 3;
-            for (let i = 0; i < 10; i++) {
-                let ele = page.querySelector(`.box-${imgIndex + 1}`);
-                if (!ele) {
-                    imgIndex = 0;
-                    ele = page.querySelector(`.box-${imgIndex + 1}`);
-                }
-                ele.click();
-                imgIndex++;
-
-                page.layout();
-            }
+            let ele = page.querySelector(`.box-4`);
+            ele.click();
+            page.layout();
+        }),
+        new BenchmarkTestStep("SkipImages", (page) => {
+            let ele = page.querySelector(`.box-1`);
+            ele.click();
+            page.layout();
         }),
     ],
 });

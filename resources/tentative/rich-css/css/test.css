@@ -208,6 +208,7 @@ table tbody tr td:last-child {
     font-size: 16px;
     color: #fff;
     opacity: 0.5;
+    transition: all 100ms;
     display: inline-block;
     transform: rotateX(45deg);
     transform-origin: center bottom;
