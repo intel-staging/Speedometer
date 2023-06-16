@@ -398,8 +398,8 @@ Suites.push({
 });
 
 Suites.push({
-    name: "Rich-CSS",
-    url: "tentative/rich-css/index.html",
+    name: "Featured-Page-Search",
+    url: "tentative/featured-page-search/index.html",
     async prepare(page) {
         await page.waitForElement("#monitored_span");
     },

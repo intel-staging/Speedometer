@@ -136,6 +136,7 @@ refreshTable("Ice cream", false);
 let $activeBox = document.querySelector(".active");
 $boxes.forEach((box) => {
     box.addEventListener("click", () => {
+	    console.time("click");
         if ($activeBox) {
             $activeBox.classList.remove("active");
         }
@@ -143,6 +144,7 @@ $boxes.forEach((box) => {
         $activeBox = box;
         const boxIndex = box.dataset.box;
         refreshTable([...dataMap.keys()][boxIndex - 1], true);
+	    console.timeEnd("click");
     });
 });
 
