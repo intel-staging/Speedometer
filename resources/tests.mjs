@@ -398,8 +398,8 @@ Suites.push({
 });
 
 Suites.push({
-    name: "Featured-Page-Search",
-    url: "tentative/featured-page-search/index.html",
+    name: "Search-In-Featured-Page",
+    url: "tentative/search-in-featured-page/index.html",
     async prepare(page) {
         await page.waitForElement("#monitored_span");
     },
