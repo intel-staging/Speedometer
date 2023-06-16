@@ -3,13 +3,7 @@ html {
 }
 
 body {
-    background: linear-gradient(180deg, #a90051 0%, #1e0031 100%),
-        linear-gradient(121.28deg, #340067 0%, #000000 38.54%),
-        linear-gradient(180deg, #00ff19 0%, #000000 100%),
-        linear-gradient(294.84deg, #870202d0 0%, #450000c3 100%),
-        linear-gradient(121.28deg, #32003a 0%, #ff4040 100%),
-        radial-gradient(50% 72.12% at 50% 50%, #eb00ff 0%, #110055 100%);
-    background-blend-mode: color-dodge, screen, overlay, exclusion, difference, normal;
+    background: rgb(55, 90, 183);
     color: seashell;
 }
 
@@ -68,7 +62,7 @@ body {
     top: 10px;
     right: 13px;
     opacity: 0.7;
-    font-size: 1.125rem;
+    font-size: 1.125em;
     font-weight: 500;
 }
 
@@ -110,61 +104,26 @@ body {
 }
 
 table {
+    background: rgba(0,0,0,0.3);
+    border-radius: 0.25em;
     border-collapse: collapse;
-    margin: 5px;
+    margin: 0.25em;
     width: 95%;
-}
-
-thead {
-    background-image: linear-gradient(
-        to right,
-        #e55d87 0%,
-        #5fc3e4 51%,
-        #e55d87 100%
-    );
-    text-align: left;
-}
-
-tbody td {
-    filter: blur(1px);
-}
-
-tbody tr:nth-child(1) td:nth-child(1)::before {
-    border: solid 0.1em red;
-    border-radius: 0.75em;
-    color: red;
-    content: "★";
-    font-size: 20px;
-    font-weight: bold;
-    line-height: 1;
-    position: absolute;
-    padding: 0.1em 0.1em;
-    top: 12%;
-    left: 5%;
-    opacity: 0.75;
-    transform: rotate(-25deg) scale(1);
-}
-
-tbody .tr-active td {
-    filter: blur(0);
-}
-
-tbody .tr-active {
-    box-shadow: 0 8px 10px -5px rgba(0, 0, 0, 0.2),
-    0 16px 24px 2px rgba(0, 0, 0, 0.2), 0 6px 30px 5px rgba(0, 0, 0, 0.2) !important;
 }
 
 th,
 td {
-    font-size: 1rem;
-    padding: 1rem;
+    font-size: 1em;
+    padding: 1em;
 }
 
 th {
+    border-bottom: 1px solid #707070;
     text-transform: uppercase;
-    font-size: 0.875rem;
+    color:gold;
+    text-align: left;
+    font-size: 0.875em;
     letter-spacing: 0.05em;
-    opacity: 0.7;
 }
 
 td .price {
@@ -182,14 +141,14 @@ td .price {
 
 table thead tr th:nth-child(1),
 table tbody tr td:nth-child(1) {
-    font-size: 1.125rem;
+    font-size: 1.125em;
     text-align: center;
-    padding-right: 1.25rem;
+    padding-right: 1.25em;
     opacity: 0.7;
 }
 
 table tbody tr td:nth-child(2) {
-    font-size: 1.125rem;
+    font-size: 1.125em;
     font-weight: 650;
 }
 
