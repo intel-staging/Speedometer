@@ -57,9 +57,19 @@ class Page {
         return this._wrapElement(element);
     }
 
-    call(function_name) {
-        this._frame.contentWindow[function_name]();
+    call(functionName) {
+        this._frame.contentWindow[functionName]();
         return null;
+    }
+
+    callAsync(functionName) {
+        setTimeout(() => {
+            this._frame.contentWindow[functionName]();
+        }, 0);
+    }
+
+    callToGetElement(functionName) {
+        return this._wrapElement(this._frame.contentWindow[functionName]());
     }
 
     _wrapElement(element) {
@@ -91,6 +101,10 @@ class PageElement {
         this.#node.focus();
     }
 
+    getElementByMethod(name) {
+        return new PageElement(this.#node[name]());
+    }
+
     dispatchEvent(eventName, options = NATIVE_OPTIONS, eventType = Event) {
         if (eventName === "submit")
             // FIXME FireFox doesn't like `new Event('submit')
@@ -107,16 +121,28 @@ class PageElement {
 
     enter(type, options = undefined) {
         const ENTER_KEY_CODE = 13;
-        let eventOptions = {
-            bubbles: true,
-            cancelable: true,
-            keyCode: ENTER_KEY_CODE,
-            which: ENTER_KEY_CODE,
-            key: "Enter",
-        };
+        return this.dispatchKeyEvent(type, ENTER_KEY_CODE, "Enter", options);
+    }
+
+    dispatchKeyEvent(type, keyCode, key, options) {
+        let eventOptions = { bubbles: true, cancelable: true, keyCode, which: keyCode, key };
         if (options !== undefined)
             eventOptions = Object.assign(eventOptions, options);
         const event = new KeyboardEvent(type, eventOptions);
+        this.#node.dispatchEvent(event);
+    }
+
+    dispatchMouseEvent(type, offsetX, offsetY, options) {
+        const boundingRect = this.#node.getBoundingClientRect();
+        const clientX = offsetX + boundingRect.x;
+        const clientY = offsetY + boundingRect.y;
+        const contentWindow = this.#node.ownerDocument.defaultView;
+        const screenX = clientX + contentWindow.screenX;
+        const screenY = clientY + contentWindow.screenY;
+        let eventOptions = { bubbles: true, cancelable: true, clientX, clientY, screenX, screenY };
+        if (options !== undefined)
+            eventOptions = Object.assign(eventOptions, options);
+        const event = new contentWindow.MouseEvent(type, eventOptions);
         this.#node.dispatchEvent(event);
     }
 }
@@ -173,13 +199,15 @@ const WarmupSuite = {
     ],
 };
 
-class TimerTestInvoker {
+class TestInvoker {
     constructor(syncCallback, asyncCallback, reportCallback) {
         this._syncCallback = syncCallback;
         this._asyncCallback = asyncCallback;
         this._reportCallback = reportCallback;
     }
+}
 
+class TimerTestInvoker extends TestInvoker {
     start() {
         return new Promise((resolve) => {
             setTimeout(() => {
@@ -191,30 +219,31 @@ class TimerTestInvoker {
                         resolve();
                     });
                 }, 0);
-            }, 0);
+            }, params.waitBeforeSync);
         });
     }
 }
 
-class RAFTestInvoker {
-    constructor(syncCallback, asyncCallback, reportCallback) {
-        this._syncCallback = syncCallback;
-        this._asyncCallback = asyncCallback;
-        this._reportCallback = reportCallback;
-    }
-
+class RAFTestInvoker extends TestInvoker {
     start() {
         return new Promise((resolve) => {
-            requestAnimationFrame(() => this._syncCallback());
-            requestAnimationFrame(() => {
-                setTimeout(() => {
-                    this._asyncCallback();
-                    setTimeout(async () => {
-                        await this._reportCallback();
-                        resolve();
-                    }, 0);
+            if (params.waitBeforeSync)
+                setTimeout(() => this._scheduleCallbacks(resolve), params.waitBeforeSync);
+            else
+                this._scheduleCallbacks(resolve);
+        });
+    }
+
+    _scheduleCallbacks(resolve) {
+        requestAnimationFrame(() => this._syncCallback());
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                this._asyncCallback();
+                setTimeout(async () => {
+                    await this._reportCallback();
+                    resolve();
                 }, 0);
-            });
+            }, 0);
         });
     }
 }
@@ -234,8 +263,16 @@ export class BenchmarkRunner {
         this._iterationCount = iterationCount;
         if (this._client?.willStartFirstIteration)
             await this._client.willStartFirstIteration(iterationCount);
-        for (let i = 0; i < iterationCount; i++)
+
+        const iterationStartLabel = "iteration-start";
+        const iterationEndLabel = "iteration-end";
+        for (let i = 0; i < iterationCount; i++) {
+            performance.mark(iterationStartLabel);
             await this._runAllSuites();
+            performance.mark(iterationEndLabel);
+            performance.measure(`iteration-${i}`, iterationStartLabel, iterationEndLabel);
+        }
+
         if (this._client?.didFinishLastIteration)
             await this._client.didFinishLastIteration(this._metrics);
     }
@@ -271,33 +308,48 @@ export class BenchmarkRunner {
     async _runAllSuites() {
         this._measuredValues = { tests: {}, total: 0, mean: NaN, geomean: NaN, score: NaN };
 
+        const prepareStartLabel = "runner-prepare-start";
+        const prepareEndLabel = "runner-prepare-end";
+
+        performance.mark(prepareStartLabel);
         this._removeFrame();
         await this._appendFrame();
         this._page = new Page(this._frame);
+        performance.mark(prepareEndLabel);
+        performance.measure("runner-prepare", prepareStartLabel, prepareEndLabel);
 
         for (const suite of this._suites) {
             if (!suite.disabled)
                 await this._runSuite(suite);
         }
 
+        const finalizeStartLabel = "runner-finalize-start";
+        const finalizeEndLabel = "runner-finalize-end";
+
+        performance.mark(finalizeStartLabel);
         // Remove frame to clear the view for displaying the results.
         this._removeFrame();
         await this._finalize();
+        performance.mark(finalizeEndLabel);
+        performance.measure("runner-finalize", finalizeStartLabel, finalizeEndLabel);
     }
 
     async _runSuite(suite) {
-        const suitePrepareLabel = `suite-${suite.name}-prepare`;
+        const suitePrepareStartLabel = `suite-${suite.name}-prepare-start`;
+        const suitePrepareEndLabel = `suite-${suite.name}-prepare-end`;
         const suiteStartLabel = `suite-${suite.name}-start`;
         const suiteEndLabel = `suite-${suite.name}-end`;
 
-        performance.mark(suitePrepareLabel);
+        performance.mark(suitePrepareStartLabel);
         await this._prepareSuite(suite);
+        performance.mark(suitePrepareEndLabel);
 
         performance.mark(suiteStartLabel);
         for (const test of suite.tests)
             await this._runTestAndRecordResults(suite, test);
         performance.mark(suiteEndLabel);
 
+        performance.measure(`suite-${suite.name}-prepare`, suitePrepareStartLabel, suitePrepareEndLabel);
         performance.measure(`suite-${suite.name}`, suiteStartLabel, suiteEndLabel);
     }
 
@@ -327,6 +379,14 @@ export class BenchmarkRunner {
         let asyncStartTime;
         let asyncTime;
         const runSync = () => {
+            if (params.warmupBeforeSync) {
+                performance.mark("warmup-start");
+                const startTime = performance.now();
+                // Infinite loop for the specified ms.
+                while (performance.now() - startTime < params.warmupBeforeSync)
+                    continue;
+                performance.mark("warmup-end");
+            }
             performance.mark(startLabel);
             const syncStartTime = performance.now();
             test.run(this._page);
@@ -346,11 +406,13 @@ export class BenchmarkRunner {
             asyncTime = asyncEndTime - asyncStartTime;
             this._frame.contentWindow._unusedHeightValue = height; // Prevent dead code elimination.
             performance.mark(asyncEndLabel);
+            if (params.warmupBeforeSync)
+                performance.measure("warmup", "warmup-start", "warmup-end");
             performance.measure(`${suite.name}.${test.name}-sync`, startLabel, syncEndLabel);
             performance.measure(`${suite.name}.${test.name}-async`, asyncStartLabel, asyncEndLabel);
-        }
+        };
         const report = () => this._recordTestResults(suite, test, syncTime, asyncTime);
-        const invokerClass = params.measurementMethod === 'raf' ? RAFTestInvoker : TimerTestInvoker;
+        const invokerClass = params.measurementMethod === "raf" ? RAFTestInvoker : TimerTestInvoker;
         const invoker = new invokerClass(runSync, measureAsync, report);
 
         return invoker.start();

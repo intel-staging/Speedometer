@@ -1,4 +1,4 @@
-import { Suites } from "./tests.mjs";
+import { Suites, Tags } from "./tests.mjs";
 import { params, defaultParams } from "./params.mjs";
 
 export function createDeveloperModeContainer() {
@@ -70,7 +70,7 @@ export function createUIForIterationCount() {
     let label = document.createElement("label");
     let countLabel = document.createElement("span");
     countLabel.textContent = params.iterationCount;
-    label.append(`iterations: `, countLabel, document.createElement("br"), range);
+    label.append("iterations: ", countLabel, document.createElement("br"), range);
 
     range.oninput = () => {
         countLabel.textContent = range.value;
@@ -88,7 +88,6 @@ export function createUIForSuites() {
     const control = document.createElement("nav");
     const ol = document.createElement("ol");
     const checkboxes = [];
-
     const setSuiteEnabled = (suiteIndex, enabled) => {
         Suites[suiteIndex].disabled = !enabled;
         checkboxes[suiteIndex].checked = enabled;
@@ -118,12 +117,13 @@ export function createUIForSuites() {
                         setSuiteEnabled(suiteIndex, true);
                 }
             }
-        }
+        };
 
         ol.appendChild(li);
     }
-
     control.appendChild(ol);
+    let buttons = control.appendChild(document.createElement("div"));
+    buttons.className = "button-bar";
 
     let button = document.createElement("button");
     button.textContent = "Select all";
@@ -133,7 +133,7 @@ export function createUIForSuites() {
 
         updateURL();
     };
-    control.appendChild(button);
+    buttons.appendChild(button);
 
     button = document.createElement("button");
     button.textContent = "Unselect all";
@@ -143,7 +143,38 @@ export function createUIForSuites() {
 
         updateURL();
     };
-    control.appendChild(button);
+    buttons.appendChild(button);
+
+    let i = 0;
+    const kTagsPerLine = 3;
+    for (const tag of Tags) {
+        if (tag === "all")
+            continue;
+        if (!(i % kTagsPerLine)) {
+            buttons = control.appendChild(document.createElement("div"));
+            buttons.className = "button-bar";
+        }
+        i++;
+        button = document.createElement("button");
+        button.className = "tag";
+        button.textContent = `#${tag}`;
+        button.dataTag = tag;
+        button.onclick = (event) => {
+            const extendSelection = event?.shiftKey;
+            const invertSelection = event?.ctrlKey || event?.metaKey;
+            const selectedTag = event.target.dataTag;
+            for (let suiteIndex = 0; suiteIndex < Suites.length; suiteIndex++) {
+                let enabled = Suites[suiteIndex].tags.includes(selectedTag);
+                if (invertSelection)
+                    enabled = !enabled;
+                if (extendSelection && !enabled)
+                    continue;
+                setSuiteEnabled(suiteIndex, enabled);
+            }
+            updateURL();
+        };
+        buttons.appendChild(button);
+    }
 
     return control;
 }
@@ -153,18 +184,30 @@ function updateURL() {
 
     // If less than all suites are selected then change the URL "Suites" GET parameter
     // to comma separate only the selected
-    const selectedSuites = [];
-    for (let suiteIndex = 0; suiteIndex < Suites.length; suiteIndex++) {
-        if (!Suites[suiteIndex].disabled)
-            selectedSuites.push(Suites[suiteIndex].name);
-    }
+    const selectedSuites = Suites.filter((suite) => !suite.disabled);
 
     if (!selectedSuites.length || selectedSuites.length === Suites.length) {
+        url.searchParams.delete("tags");
         url.searchParams.delete("suites");
         url.searchParams.delete("suite");
     } else {
+        url.searchParams.delete("tags");
         url.searchParams.delete("suite");
-        url.searchParams.set("suites", selectedSuites.join(","));
+        // Try finding common tags that would result in the current suite selection.
+        let commonTags = new Set(selectedSuites[0].tags);
+        for (const suite of Suites) {
+            if (suite.disabled)
+                suite.tags.forEach((tag) => commonTags.delete(tag));
+            else
+                commonTags = new Set(suite.tags.filter((tag) => commonTags.has(tag)));
+        }
+        if (commonTags.size) {
+            url.searchParams.set("tags", [...commonTags][0]);
+            url.searchParams.delete("suites");
+        } else {
+            url.searchParams.delete("tags");
+            url.searchParams.set("suites", selectedSuites.map((suite) => suite.name).join(","));
+        }
     }
 
     if (params.measurementMethod === "raf")

@@ -42,6 +42,15 @@ class MainBenchmarkClient {
         }
 
         this._developerModeContainer?.remove();
+        this._progressCompleted = document.getElementById("progress-completed");
+        if (params.iterationCount < 50) {
+            const progressNode = document.getElementById("progress");
+            for (let i = 1; i < params.iterationCount; i++) {
+                const iterationMarker = progressNode.appendChild(document.createElement("div"));
+                iterationMarker.className = "iteration-marker";
+                iterationMarker.style.left = `${(i / params.iterationCount) * 100}%`;
+            }
+        }
 
         this._metrics = Object.create(null);
         this._isRunning = true;
@@ -51,6 +60,7 @@ class MainBenchmarkClient {
             return testsCount + suite.tests.length;
         }, 0);
         this.stepCount = params.iterationCount * totalSubtestsCount;
+        this._progressCompleted.max = this.stepCount;
         this.suitesCount = enabledSuites.length;
         const runner = new BenchmarkRunner(Suites, this);
         runner.runMultipleIterations(params.iterationCount);
@@ -70,7 +80,7 @@ class MainBenchmarkClient {
 
     didRunTest() {
         this._finishedTestCount++;
-        this._progressCompleted.style.width = `${(this._finishedTestCount * 100) / this.stepCount}%`;
+        this._progressCompleted.value = this._finishedTestCount;
     }
 
     didRunSuites(measuredValues) {
@@ -80,7 +90,6 @@ class MainBenchmarkClient {
     willStartFirstIteration() {
         this._measuredValuesList = [];
         this._finishedTestCount = 0;
-        this._progressCompleted = document.getElementById("progress-completed");
     }
 
     didFinishLastIteration(metrics) {
@@ -232,8 +241,8 @@ class MainBenchmarkClient {
             button.onclick = this._startBenchmarkHandler.bind(this);
         });
 
-        if (params.suites.length > 0)
-            Suites.enable(params.suites);
+        if (params.suites.length > 0 || params.tags.length > 0)
+            Suites.enable(params.suites, params.tags);
 
         if (params.developerMode) {
             this._developerModeContainer = createDeveloperModeContainer(Suites);
