@@ -50,41 +50,40 @@ const dataMap = new Map([
 ]);
 
 function generateTableBody(name) {
-    let tableRows = document.createElement("tbody");
+    let tableBody = "",
+        tableRows = "";
     for (let j = 1; j <= rowNum; j++) {
-        const tableRow = document.createElement("tr");
-        j == 1 ? tableRow.classList.add("tr-active") : "";
-
+        let tableData = "";
         for (let i = 1; i <= columNum; i++) {
-            let tableData = document.createElement("td");
             switch (i) {
                 case 1: {
-                    tableData.textContent = `${j}`;
+                    tableData += `<td>${j}</td>`;
                     break;
                 }
 
                 case 2: {
-                    tableData.textContent = `${name} - ${j}`;
+                    tableData += `<td>${name} - ${j}</td>`;
                     break;
                 }
 
                 case 3: {
-                    tableData.textContent = dataMap.get(name).category;
+                    tableData += "<td>" + dataMap.get(name).category;
+                    +"</td>";
                     break;
                 }
 
                 case 4: {
-                    tableData.innerHTML = `<div class="price"><span>${dataMap.get(name).price}</span></div>`;
+                    tableData += `<td><div class="price"><span>${dataMap.get(name).price}</span></div></td>`;
                     break;
                 }
 
                 case 5: {
-                    tableData.innerHTML = `
+                    tableData += `<td>
 		        <div class="bar">
                             <div style="animation:progress-${dataMap.get(name).popularity.split("%")[0]}-fill 100ms forwards">
                                 <span>${dataMap.get(name).popularity}</span>
                             </div>
-                        </div>`;
+                        </div></td>`;
                     break;
                 }
 
@@ -92,27 +91,22 @@ function generateTableBody(name) {
                     const rating = dataMap.get(name).rating;
                     let ratingStarHTML = `<div class="rating">`;
                     for (let m = 1; m <= 5; m++) {
-                        let str = "";
-                        if (j == 1 && m == rating) {
-                            str = `id="monitored_span"`;
-                        }
-
-                        ratingStarHTML += `<span ${str}class="${m <= rating ? `select` : ``}">★</span>`;
-                        if (m == 5)
-	                    ratingStarHTML += `</div>`;
+                        ratingStarHTML += `<span class="${m <= rating ? `select` : ``}">★</span>`;
+                        if (m == 5) ratingStarHTML += `</div>`;
                     }
-                    tableData.innerHTML = ratingStarHTML;
+                    tableData += "<td>" + ratingStarHTML + "</td>";
                     break;
                 }
             }
-            tableRow.appendChild(tableData);
         }
-        tableRows.appendChild(tableRow);
+
+        tableRows += "<tr>" + tableData + "</tr>";
     }
-    return tableRows.innerHTML;
+    tableBody = "<tbody>" + tableRows + "</tbody>";
+    return tableBody;
 }
 
-function refreshTable(name, need_measure) {
+function refreshTable(name) {
     const tableBody = document.getElementById("table-body");
     tableBody.innerHTML = "";
     tableBody.innerHTML = generateTableBody(name);
@@ -131,7 +125,7 @@ const box3Element = document.querySelector(".box-3");
 box3Element.classList.add("active");
 
 // set corresponding table data
-refreshTable("Ice cream", false);
+refreshTable("Ice cream");
 
 let $activeBox = document.querySelector(".active");
 $boxes.forEach((box) => {
@@ -142,7 +136,6 @@ $boxes.forEach((box) => {
         box.classList.add("active");
         $activeBox = box;
         const boxIndex = box.dataset.box;
-        refreshTable([...dataMap.keys()][boxIndex - 1], true);
+        refreshTable([...dataMap.keys()][boxIndex - 1]);
     });
 });
-
