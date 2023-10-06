@@ -67,7 +67,7 @@
     "http-server": "^14.1.1",
     "loadicons": "^1.0.0",
     "mini-css-extract-plugin": "^2.7.2",
-    "postcss": "^8.4.23",
+    "postcss": "^8.4.31",
     "postcss-cli": "^10.1.0",
     "postcss-dropunusedvars": "^1.2.1",
     "postcss-import": "15.1.0",
